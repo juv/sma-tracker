@@ -14,6 +14,7 @@ RUN cargo build --release --target x86_64-unknown-linux-musl
 FROM scratch
 
 COPY --from=builder /usr/src/app/target/x86_64-unknown-linux-musl/release/sma-tracker /sma-tracker
+COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
 
 USER 1001
 
