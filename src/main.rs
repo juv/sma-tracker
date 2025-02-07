@@ -12,13 +12,20 @@ use utils::logging::init_logger;
 
 #[tokio::main]
 async fn main() -> Result<(), AppError> {
-    // Initialize logging
     init_logger();
 
     info!("Starting sma-tracker...");
 
-    fetch_and_compare_sma200().await?;
+    let execution_mode = env::var("EXECUTION_MODE").unwrap_or_else(|_| "once".into());
+    info!("Execution mode: {}", execution_mode);
+    match execution_mode.as_str() {
+        "cron" => execute_cron_job().await,
+        "once" => execute_once().await,
+        _ => Err(AppError::UnsupportedExecutionMode)
+    }
+}
 
+async fn execute_cron_job() -> Result<(), AppError> {
     let cron_schedule =
         env::var("CRON_SCHEDULE").unwrap_or_else(|_| "0 */15 * * * 1-5".to_string());
 
@@ -41,4 +48,8 @@ async fn main() -> Result<(), AppError> {
     loop {
         tokio::time::sleep(tokio::time::Duration::from_secs(60)).await;
     }
+}
+
+async fn execute_once() -> Result<(), AppError> {
+    fetch_and_compare_sma200().await
 }

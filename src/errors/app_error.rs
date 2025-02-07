@@ -12,4 +12,6 @@ pub enum AppError {
     InsufficientData,
     #[error("Scheduler error: {0}")]
     SchedulerError(#[from] TokioCronScheduleError),
+    #[error("Unsupported value for EXECUTION_MODE")]
+    UnsupportedExecutionMode,
 }
