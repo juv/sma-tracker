@@ -3,8 +3,37 @@ use crate::models::yahoo_finance::YahooFinanceResponse;
 use log::{error, info};
 use reqwest::header::{ACCEPT, USER_AGENT};
 use std::env;
+use teloxide::Bot;
+use teloxide::prelude::{ChatId, Requester};
 
-pub async fn fetch_and_compare_sma200() -> Result<(), AppError> {
+pub async fn fetch_and_compare_sma200_botless() -> Result<(), AppError> {
+    let (current_price, sma_200) = fetch_data().await?;
+
+    let comparison = match current_price.partial_cmp(&sma_200) {
+        Some(std::cmp::Ordering::Greater) => info!("überschritten"),
+        Some(std::cmp::Ordering::Less) => info!("unterschritten"),
+        _ => info!("Gleich"),
+    };
+
+    Ok(())
+}
+
+pub async fn fetch_and_compare_sma200(bot: &Bot, chat_id: i64) -> Result<(), AppError> {
+    let (current_price, sma_200) = fetch_data().await?;
+
+    // Compare the current price with the SMA200
+    let comparison = match current_price.partial_cmp(&sma_200) {
+        Some(std::cmp::Ordering::Greater) => "überschritten",
+        Some(std::cmp::Ordering::Less) => "unterschritten",
+        _ => "gleich",
+    };
+
+    send_private_message(bot, chat_id, comparison).await?;
+
+    Ok(())
+}
+
+pub async fn fetch_data() -> Result<(f64, f64), AppError> {
     info!("Fetching S&P 500 data...");
 
     let api_url = env::var("YAHOO_FINANCE_API_URL")
@@ -42,15 +71,9 @@ pub async fn fetch_and_compare_sma200() -> Result<(), AppError> {
 
     info!("Current Price: {}, SMA200: {}", current_price, sma200);
 
-    // Compare the current price with the SMA200
-    match current_price.partial_cmp(&sma200) {
-        Some(std::cmp::Ordering::Greater) => info!("überschritten"),
-        Some(std::cmp::Ordering::Less) => info!("unterschritten"),
-        _ => info!("Gleich"),
-    }
-
-    Ok(())
+    Ok((current_price, sma200))
 }
+
 
 fn calculate_sma200(close_prices: &[Option<f64>]) -> Option<f64> {
     let valid_prices: Vec<f64> = close_prices.iter().filter_map(|&x| x).collect();
@@ -62,4 +85,16 @@ fn calculate_sma200(close_prices: &[Option<f64>]) -> Option<f64> {
 
     let sum: f64 = valid_prices.iter().sum();
     Some(sum / valid_prices.len() as f64)
+}
+
+async fn send_private_message(bot: &Bot, chat_id: i64, message: &str) -> Result<(), AppError> {
+    info!("Sending message \"{}\" to chatId {}", message, chat_id);
+    bot.send_message(ChatId(chat_id), message)
+        .await
+        .map_err(|e| {
+            log::error!("Failed to send message: {}", e);
+            AppError::TeloxideRequestError(e)
+        })?;
+
+    Ok(())
 }

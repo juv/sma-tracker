@@ -1,4 +1,4 @@
-use sma_tracker::services::sma_service::fetch_and_compare_sma200;
+use sma_tracker::services::sma_service::{fetch_and_compare_sma200_botless};
 
 use serde_json::json;
 use sma_tracker::errors::app_error::AppError;
@@ -9,6 +9,9 @@ use wiremock::{Mock, MockServer, ResponseTemplate};
 async fn test_fetch_and_compare_sma200_valid_response() {
     // Mock the Yahoo Finance API
     let mock_server = MockServer::start().await;
+
+    // Override the API URL to use the mock server
+    std::env::set_var("YAHOO_FINANCE_API_URL", mock_server.uri());
 
     // Mock a valid API response
     Mock::given(method("GET"))
@@ -36,11 +39,8 @@ async fn test_fetch_and_compare_sma200_valid_response() {
         .mount(&mock_server)
         .await;
 
-    // Override the API URL to use the mock server
-    std::env::set_var("YAHOO_FINANCE_API_URL", mock_server.uri());
-
     // Call the function
-    let result = fetch_and_compare_sma200().await;
+    let result = fetch_and_compare_sma200_botless().await;
 
     // Assert the result
     assert!(result.is_ok());
@@ -50,6 +50,9 @@ async fn test_fetch_and_compare_sma200_valid_response() {
 async fn test_fetch_and_compare_sma200_no_data() {
     // Mock the Yahoo Finance API
     let mock_server = MockServer::start().await;
+
+    // Override the API URL to use the mock server
+    std::env::set_var("YAHOO_FINANCE_API_URL", mock_server.uri());
 
     // Mock an empty API response
     Mock::given(method("GET"))
@@ -62,11 +65,8 @@ async fn test_fetch_and_compare_sma200_no_data() {
         .mount(&mock_server)
         .await;
 
-    // Override the API URL to use the mock server
-    std::env::set_var("YAHOO_FINANCE_API_URL", mock_server.uri());
-
     // Call the function
-    let result = fetch_and_compare_sma200().await;
+    let result = fetch_and_compare_sma200_botless().await;
 
     // Assert the result
     assert!(matches!(result, Err(AppError::NoDataAvailable)));
@@ -76,6 +76,9 @@ async fn test_fetch_and_compare_sma200_no_data() {
 async fn test_fetch_and_compare_sma200_insufficient_data() {
     // Mock the Yahoo Finance API
     let mock_server = MockServer::start().await;
+
+    // Override the API URL to use the mock server
+    std::env::set_var("YAHOO_FINANCE_API_URL", mock_server.uri());
 
     // Mock an API response with insufficient data
     Mock::given(method("GET"))
@@ -103,11 +106,8 @@ async fn test_fetch_and_compare_sma200_insufficient_data() {
         .mount(&mock_server)
         .await;
 
-    // Override the API URL to use the mock server
-    std::env::set_var("YAHOO_FINANCE_API_URL", mock_server.uri());
-
     // Call the function
-    let result = fetch_and_compare_sma200().await;
+    let result = fetch_and_compare_sma200_botless().await;
 
     // Assert the result
     assert!(matches!(result, Err(AppError::InsufficientData)));
@@ -118,6 +118,9 @@ async fn test_fetch_and_compare_sma200_invalid_json() {
     // Mock the Yahoo Finance API
     let mock_server = MockServer::start().await;
 
+    // Override the API URL to use the mock server
+    std::env::set_var("YAHOO_FINANCE_API_URL", mock_server.uri());
+
     // Mock an invalid JSON response
     Mock::given(method("GET"))
         .and(path("/v8/finance/chart/%5EGSPC"))
@@ -125,11 +128,8 @@ async fn test_fetch_and_compare_sma200_invalid_json() {
         .mount(&mock_server)
         .await;
 
-    // Override the API URL to use the mock server
-    std::env::set_var("YAHOO_FINANCE_API_URL", mock_server.uri());
-
     // Call the function
-    let result = fetch_and_compare_sma200().await;
+    let result = fetch_and_compare_sma200_botless().await;
 
     // Assert the result
     assert!(matches!(result, Err(AppError::ReqwestError(_))));
@@ -140,6 +140,9 @@ async fn test_fetch_and_compare_sma200_api_error() {
     // Mock the Yahoo Finance API
     let mock_server = MockServer::start().await;
 
+    // Override the API URL to use the mock server
+    std::env::set_var("YAHOO_FINANCE_API_URL", mock_server.uri());
+
     // Mock an API error response
     Mock::given(method("GET"))
         .and(path("/v8/finance/chart/%5EGSPC"))
@@ -147,11 +150,8 @@ async fn test_fetch_and_compare_sma200_api_error() {
         .mount(&mock_server)
         .await;
 
-    // Override the API URL to use the mock server
-    std::env::set_var("YAHOO_FINANCE_API_URL", mock_server.uri());
-
     // Call the function
-    let result = fetch_and_compare_sma200().await;
+    let result = fetch_and_compare_sma200_botless().await;
 
     // Assert the result
     assert!(matches!(result, Err(AppError::ReqwestError(_))));
@@ -161,6 +161,9 @@ async fn test_fetch_and_compare_sma200_api_error() {
 async fn test_fetch_and_compare_sma200_mixed_data() {
     // Mock the Yahoo Finance API
     let mock_server = MockServer::start().await;
+
+    // Override the API URL to use the mock server
+    std::env::set_var("YAHOO_FINANCE_API_URL", mock_server.uri());
 
     // Mock an API response with mixed valid and invalid data
     Mock::given(method("GET"))
@@ -188,11 +191,8 @@ async fn test_fetch_and_compare_sma200_mixed_data() {
         .mount(&mock_server)
         .await;
 
-    // Override the API URL to use the mock server
-    std::env::set_var("YAHOO_FINANCE_API_URL", mock_server.uri());
-
     // Call the function
-    let result = fetch_and_compare_sma200().await;
+    let result = fetch_and_compare_sma200_botless().await;
 
     // Assert the result
     assert!(matches!(result, Err(AppError::InsufficientData)));

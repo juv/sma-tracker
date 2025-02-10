@@ -1,4 +1,5 @@
 use reqwest::Error as ReqwestError;
+use teloxide::RequestError;
 use thiserror::Error;
 use tokio_cron_scheduler::JobSchedulerError as TokioCronScheduleError;
 
@@ -14,4 +15,8 @@ pub enum AppError {
     SchedulerError(#[from] TokioCronScheduleError),
     #[error("Unsupported value for EXECUTION_MODE")]
     UnsupportedExecutionMode,
+    #[error("Task panicked")]
+    TaskPanicked,
+    #[error("Teloxide request error: {0}")]
+    TeloxideRequestError(#[from] RequestError),
 }
