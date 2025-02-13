@@ -20,7 +20,8 @@ pub struct Result {
 pub struct Meta {
     pub currency: String,
     pub symbol: String,
-    pub regularMarketPrice: f64,
+    #[serde(rename(deserialize = "regularMarketPrice"))]
+    pub regular_market_price: f64,
 }
 
 #[derive(Deserialize, Debug)]

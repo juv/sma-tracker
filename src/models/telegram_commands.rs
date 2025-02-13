@@ -21,12 +21,3 @@ impl fmt::Display for Command {
         }
     }
 }
-
-impl Command {
-    fn as_str(&self) -> &'static str {
-        match self {
-            Command::Help => "Help",
-            Command::Fetch => "Fetch",
-        }
-    }
-}
