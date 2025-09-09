@@ -12,7 +12,7 @@ tokio-cron-scheduler = "0.14.0"
 log = "0.4"
 thiserror = "2.0"
 env_logger = "0.11.6"
-teloxide = { version = "0.13", features = ["macros"] }
+teloxide = { version = "0.17", features = ["macros"] }
 
 [dev-dependencies]
 wiremock = "0.6"
